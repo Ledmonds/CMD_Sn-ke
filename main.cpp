@@ -8,15 +8,6 @@
 #include <time.h> //time
 using namespace std;
 
-/*ToDo:
-	Implement movement controls, thread this too please.
-	Implement board class to contain member fucntions for print board.
-	Implement sleep function in seperate thread.
-	Recode the isSnakebodyMember function, i don't like the way this looks so much. Maybe hash maps with directions and opposites stored.
-	Maybe create a 2D vector class for storing coordinates, vector class seems a little too difficult / fancy for this game.
-	Implement score system.
-*/
-
 
 int const  WINDOW_X = 150;
 int const WINDOW_Y = 38;
