@@ -9,9 +9,32 @@
 using namespace std;
 
 
-int const  WINDOW_X = 150;
-int const WINDOW_Y = 38;
-int const UPDATE_TIME = 100; //ms
+int const  WINDOW_X = 120;
+int const WINDOW_Y = 40;
+int const UPDATE_TIME = 50; //ms
+
+
+/*==========
+HELPER FUNCTIONS
+==========*/
+string outputBlueText(char _char) { //Code color 34
+	string _string = "\033[34m";
+	_string += _char;
+	_string += "\033[0m";
+	return _string;
+}
+string outputGreenText(char _char) { //Code color 32
+	string _string = "\033[32m";
+	_string += _char;
+	_string += "\033[0m";
+	return _string;
+}
+string outputRedText(char _char) { //Code color 31
+	string _string = "\033[31m";
+	_string += _char;
+	_string += "\033[0m";
+	return _string;
+}
 
 
 /*==========
@@ -21,7 +44,7 @@ class Food {
 	private:
 		int food_x;
 		int food_y;
-		static const char food_character = '+';
+		static const char food_character = 'o';
 
 	public:
 		//Constructors
@@ -63,7 +86,7 @@ class Snake {
 		list<pair<int,int> >  snake_body;
 		unordered_map<int,int> bearing_map; //Holds reveresed bearings for snake directions.
 		static const char snakehead_character = 'O';
-		static const char snakebody_character = 'o';
+		static const char snakebody_character = '+';
 
 	public:
 		//Constructors
@@ -98,7 +121,7 @@ class Snake {
 			return (snake_body.front().first == _potential_x && snake_body.front().second == _potential_y) ? true : false;
 		}
 
-		bool isWallCollision() {
+		bool isBoarderCollision() {
 			return (snake_body.front().first == 0 || snake_body.front().first == WINDOW_X-1 || snake_body.front().second == 0 || snake_body.front().second == WINDOW_Y-1) ? true : false;
 		}
 
@@ -120,11 +143,11 @@ class Snake {
 			snake_body.pop_back();
 		}
 
-		void growSnake() { //Pushes new snake tail to end of previous tail, head not affected.
+		void growSnake() {
 			snake_body.push_back(make_pair(snake_body.back().first,snake_body.back().second));
 		}
 
-		//Ranomiser
+		//Randomisers
 		void generateRandomSnakeDelta(int _it) {
 			for (int i = 0; i < _it; ++i) {
 				if (rand()%2 == 0) snake_body.push_back(make_pair(snake_body.back().first+1,snake_body.back().second));
@@ -135,6 +158,8 @@ class Snake {
 			int _potential_bearing = rand() % 4;
 			if (rand()%2 == 0 && isValidBearingChange(_potential_bearing)) bearing = _potential_bearing;
 		}
+
+		//Assistors
 		void generateBearingMap() {
 			bearing_map.insert(make_pair<int,int>(0,2));
 			bearing_map.insert(make_pair<int,int>(1,3));
@@ -142,7 +167,7 @@ class Snake {
 			bearing_map.insert(make_pair<int,int>(3,1));	
 		}
 
-		//Debuggor
+		//Debuggors
 		void printSnakeheadCoOrds() {
 			cout << "X:" << to_string(snake_body.front().first) << ", Y: " << to_string(snake_body.front().second) << endl;
 		}
@@ -151,8 +176,13 @@ class Snake {
 			list <pair<int,int> >::iterator it;
 			for (it = snake_body.begin(); it != snake_body.end(); ++it) cout << "X:" << to_string(it->first) << ", Y: " << to_string(it->second) << endl;
 		}
-};
 
+		//Magical Unicorn Stuff
+		void startLearingHowToTeleport() {
+			snake_body.front().first = (rand()%WINDOW_X-1)+1;
+			snake_body.front().second = (rand()%WINDOW_Y-1)+1;
+		}
+};
 Snake::Snake() {
 	snake_body.push_back(make_pair(WINDOW_X/2,WINDOW_Y/2));
 	generateRandomSnakeDelta(4);
@@ -162,6 +192,7 @@ Snake::Snake() {
 /*==========
 SNAKE END
 ==========*/
+
 
 /*==========
 BOARD BEGIN
@@ -184,15 +215,18 @@ class Board {
 		int getBoardY() {return board_y;}
 		int getScore() {return score;}
 		char getBoarderCharacter() {return boarder_character;}
-		Snake getSnake() {return snake;}
-		Food getFood() {return food;}
 
 		//Checkers
-		bool isWall(int _potential_x, int _potential_y) {
+		bool isBoarder(int _potential_x, int _potential_y) {
 			return (_potential_x == 0 || _potential_x == board_x-1 || _potential_y == 0 || _potential_y == board_y-1) ? true : false;
 		}
 		bool boardCollisionCheck() {
-			return (snake.isWallCollision() || snake.isBodyCollision());
+			// if (snake.isBoarderCollision() || snake.isBodyCollision()) {
+			// 	snake.startLearingHowToTeleport();
+			// 	return false;
+			// }
+			// return false;
+			return (snake.isBoarderCollision() || snake.isBodyCollision());
 		}
 
 		//Assistors
@@ -200,10 +234,10 @@ class Board {
 			system("clear");
 			for(int y = 0; y < board_y; ++y) {
 				for(int x = 0; x < board_x; ++x) {
-					if(isWall(x,y)) cout << boarder_character; //isBorder
-					else if (snake.isSnakehead(x,y)) cout << snake.getSnakeheadCharacter();
-					else if (snake.isSnakebodyMember(x,y)) cout << snake.getSnakebodyCharacter();
-					else if (food.isFoodCoOds(x,y)) cout << food.getFoodCharacter();
+					if(isBoarder(x,y)) cout << outputRedText(boarder_character); //isBorder
+					else if (snake.isSnakehead(x,y)) cout << outputGreenText(snake.getSnakeheadCharacter());
+					else if (snake.isSnakebodyMember(x,y)) cout << outputGreenText(snake.getSnakebodyCharacter());
+					else if (food.isFoodCoOds(x,y)) cout << outputBlueText(food.getFoodCharacter());
 					else cout << " "; //isNotBorder
 				}
 				cout << endl;
@@ -214,7 +248,7 @@ class Board {
 		void iterateBoard() {
 			this_thread::sleep_for(std::chrono::milliseconds(UPDATE_TIME)); //BADDDDDD
 
-			//snake.generateRandomSnakeDirection();
+			snake.generateRandomSnakeDirection();
 
 			snake.iterateSnake();
 			if (snake.getSnakeheadX() == food.getFoodX() && snake.getSnakeheadY() == food.getFoodY()) {
@@ -230,7 +264,7 @@ Board::Board() {
 	board_x = WINDOW_X;
 	board_y = WINDOW_Y;
 	score = 0;
-	food = Food(WINDOW_X/2,WINDOW_Y/4);
+	//food = Food(WINDOW_X/2,WINDOW_Y/4);
 }
 
 /*==========
@@ -249,8 +283,6 @@ int main() {
 		board.printBoard();
 		board.iterateBoard();
 	}
-
-	cout << "Snakey Died :(" << endl;
 
 	return 0;
 }
